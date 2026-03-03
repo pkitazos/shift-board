@@ -1,6 +1,12 @@
 import { db } from "@/lib/supabase";
 import { formatDateKey, getWeekDates } from "@/lib/dates";
-import type { Shift, ShiftType } from "@/types";
+import type { Shift, ShiftType, User } from "@/types";
+
+export type BasicUser = Pick<User, "id" | "name" | "email">;
+
+export interface ShiftWithUser extends Shift {
+  users: BasicUser;
+}
 
 /** Fetch all shifts for a user within a given week. */
 export async function fetchShifts(
@@ -74,4 +80,31 @@ export async function saveShifts(
       .in("date", toDelete);
     if (error) throw error;
   }
+}
+
+/** Fetch all users. */
+export async function fetchAllUsers(): Promise<BasicUser[]> {
+  const { data, error } = await db
+    .from("users")
+    .select("id, name, email")
+    .order("name");
+
+  if (error) throw error;
+  return data;
+}
+
+/** Fetch all shifts (with user info) across a date range. */
+export async function fetchAllShifts(
+  startDate: string,
+  endDate: string,
+): Promise<ShiftWithUser[]> {
+  const { data, error } = await db
+    .from("shifts")
+    .select("*, users(id, name, email)")
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("date");
+
+  if (error) throw error;
+  return data as ShiftWithUser[];
 }
