@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import * as v from "valibot";
 import { Trash2, ShieldCheck, ShieldOff, UserPlus } from "lucide-react";
 import {
   fetchAllUsersFull,
@@ -28,6 +29,13 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
   component: AdminUsersPage,
 });
 
+const EmailSchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.toLowerCase(),
+  v.email("Please enter a valid email address."),
+);
+
 function AdminUsersPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
@@ -48,38 +56,45 @@ function AdminUsersPage() {
   }, [loadUsers]);
 
   const handleAdd = () => {
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) return;
+    const result = v.safeParse(EmailSchema, email);
+    if (!result.success) {
+      setError(result.issues[0].message);
+      return;
+    }
 
-    if (users.some((u) => u.email === trimmed)) {
+    const validated = result.output;
+
+    if (users.some((u) => u.email === validated)) {
       setError("This email is already added.");
       return;
     }
 
     setAdding(true);
     setError(null);
-    addUser(trimmed)
+    addUser(validated)
       .then((newUser) => {
         setUsers((prev) => [...prev, newUser]);
         setEmail("");
       })
-      .catch(() => setError("Failed to add user. Check the email and try again."))
+      .catch(() =>
+        setError("Failed to add user. Check the email and try again."),
+      )
       .finally(() => setAdding(false));
   };
 
   const handleRemove = (userId: string) => {
-    removeUser(userId)
-      .then(() => setUsers((prev) => prev.filter((u) => u.id !== userId)));
+    removeUser(userId).then(() =>
+      setUsers((prev) => prev.filter((u) => u.id !== userId)),
+    );
   };
 
   const handleToggleAdmin = (userId: string, currentlyAdmin: boolean) => {
     const newValue = !currentlyAdmin;
-    updateUserAdmin(userId, newValue)
-      .then(() =>
-        setUsers((prev) =>
-          prev.map((u) => (u.id === userId ? { ...u, is_admin: newValue } : u)),
-        ),
-      );
+    updateUserAdmin(userId, newValue).then(() =>
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, is_admin: newValue } : u)),
+      ),
+    );
   };
 
   return (
@@ -111,9 +126,7 @@ function AdminUsersPage() {
         </Button>
       </form>
 
-      {error && (
-        <p className="mb-4 text-sm text-destructive">{error}</p>
-      )}
+      {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
       {/* Users list */}
       {loading ? (
@@ -184,9 +197,7 @@ function AdminUsersPage() {
                           size="sm"
                           disabled={isSelf}
                           title={
-                            isSelf
-                              ? "You can't remove yourself"
-                              : "Remove user"
+                            isSelf ? "You can't remove yourself" : "Remove user"
                           }
                         >
                           <Trash2 className="size-4 text-destructive" />

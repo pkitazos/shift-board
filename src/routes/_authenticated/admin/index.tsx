@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { addWeeks } from "date-fns";
 import { Plus } from "lucide-react";
 import {
@@ -41,7 +41,25 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
 });
 
-const WEEKS_TO_SHOW = 4;
+const ROW_HEIGHT_ESTIMATE = 100;
+const CHROME_HEIGHT = 140; // header + nav + padding
+const MIN_WEEKS = 4;
+
+function subscribeToResize(cb: () => void) {
+  window.addEventListener("resize", cb);
+  return () => window.removeEventListener("resize", cb);
+}
+
+function getWeeksToShow() {
+  return Math.max(
+    MIN_WEEKS,
+    Math.floor((window.innerHeight - CHROME_HEIGHT) / ROW_HEIGHT_ESTIMATE),
+  );
+}
+
+function useWeeksToShow() {
+  return useSyncExternalStore(subscribeToResize, getWeeksToShow);
+}
 
 // -- Types --
 
@@ -188,6 +206,7 @@ function AddEmployeeCombobox({
 // -- Main component --
 
 function AdminPage() {
+  const weeksToShow = useWeeksToShow();
   const [startWeek, setStartWeek] = useState(() => getWeekStart(new Date()));
   const [grid, setGrid] = useState<GridState>({});
   const [original, setOriginal] = useState<GridState>({});
@@ -198,7 +217,7 @@ function AdminPage() {
   // Track which cells have an open combobox: "YYYY-MM-DD"
   const [pendingCells, setPendingCells] = useState<Set<string>>(new Set());
 
-  const weeks = Array.from({ length: WEEKS_TO_SHOW }, (_, i) =>
+  const weeks = Array.from({ length: weeksToShow }, (_, i) =>
     addWeeks(startWeek, i),
   );
 
@@ -206,7 +225,7 @@ function AdminPage() {
 
   const loadData = useCallback(() => {
     const startDate = formatDateKey(startWeek);
-    const endDate = formatDateKey(addWeeks(startWeek, WEEKS_TO_SHOW));
+    const endDate = formatDateKey(addWeeks(startWeek, weeksToShow));
 
     setLoading(true);
     setPendingCells(new Set());
@@ -219,7 +238,7 @@ function AdminPage() {
         setUsers(allUsers);
       })
       .finally(() => setLoading(false));
-  }, [startWeek]);
+  }, [startWeek, weeksToShow]);
 
   useEffect(() => {
     loadData();
