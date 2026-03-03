@@ -22,7 +22,7 @@ export function WeekCalendar({
       {days.map((day) => {
         const key = formatDateKey(day);
         return (
-          <div key={key} className="flex flex-col gap-1">
+          <div key={key} className="flex flex-col justify-between gap-1">
             <span className="text-center text-xs font-medium text-muted-foreground">
               {formatDayHeader(day)}
             </span>

@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { addWeeks } from "date-fns";
 import { Plus } from "lucide-react";
 import {
@@ -95,7 +101,7 @@ function cloneGrid(grid: GridState): GridState {
 }
 
 /** Compute per-user diffs and call saveShifts for each changed user. */
-function computeAndSave(
+async function computeAndSave(
   current: GridState,
   original: GridState,
 ): Promise<void> {
