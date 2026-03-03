@@ -42,7 +42,9 @@ export function ShiftCell({ value, disabled, onClick }: ShiftCellProps) {
 }
 
 /** Cycle through: null → full → half → null */
-export function cycleShift(current: ShiftTypeValue | null): ShiftTypeValue | null {
+export function cycleShift(
+  current: ShiftTypeValue | null,
+): ShiftTypeValue | null {
   if (!current) return ShiftType.FULL;
   if (current === ShiftType.FULL) return ShiftType.HALF;
   return null;

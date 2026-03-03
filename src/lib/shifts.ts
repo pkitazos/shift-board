@@ -93,6 +93,53 @@ export async function fetchAllUsers(): Promise<BasicUser[]> {
   return data;
 }
 
+/** Fetch all users (full profile). */
+export async function fetchAllUsersFull(): Promise<User[]> {
+  const { data, error } = await db
+    .from("users")
+    .select("*")
+    .order("name");
+
+  if (error) throw error;
+  return data;
+}
+
+/** Add a new user by email. */
+export async function addUser(email: string): Promise<User> {
+  const { data, error } = await db
+    .from("users")
+    .insert({ email })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/** Remove a user by id. Also deletes their shifts via cascade. */
+export async function removeUser(userId: string): Promise<void> {
+  const { error: shiftsError } = await db
+    .from("shifts")
+    .delete()
+    .eq("user_id", userId);
+  if (shiftsError) throw shiftsError;
+
+  const { error } = await db.from("users").delete().eq("id", userId);
+  if (error) throw error;
+}
+
+/** Toggle a user's admin status. */
+export async function updateUserAdmin(
+  userId: string,
+  isAdmin: boolean,
+): Promise<void> {
+  const { error } = await db
+    .from("users")
+    .update({ is_admin: isAdmin })
+    .eq("id", userId);
+  if (error) throw error;
+}
+
 /** Fetch all shifts (with user info) across a date range. */
 export async function fetchAllShifts(
   startDate: string,

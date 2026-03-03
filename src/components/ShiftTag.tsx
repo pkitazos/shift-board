@@ -11,7 +11,13 @@ interface ShiftTagProps {
   onRemove?: () => void;
 }
 
-export function ShiftTag({ name, type, className, onCycleType, onRemove }: ShiftTagProps) {
+export function ShiftTag({
+  name,
+  type,
+  className,
+  onCycleType,
+  onRemove,
+}: ShiftTagProps) {
   const interactive = !!onCycleType || !!onRemove;
 
   return (
