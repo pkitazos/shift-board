@@ -49,13 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const { data: user, error } = await db
+    const result = await db
       .from("users")
       .select("*")
       .eq("email", email)
       .single();
 
-    if (error || !user) {
+    if (result.error || !result.data) {
       await db.auth.signOut();
       setState((s) => ({
         ...s,
@@ -67,6 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }));
       return;
     }
+
+    const user: User = { ...result.data };
 
     // Link auth_id on first login
     if (!user.auth_id) {
@@ -83,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setState({
       session,
-      user: user as User,
+      user,
       isAdmin: user.is_admin,
       loading: false,
       error: null,
