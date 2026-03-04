@@ -31,12 +31,13 @@ function applyTheme(theme: Theme) {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "system";
     const stored = localStorage.getItem(STORAGE_KEY);
     return (stored as Theme) ?? "system";
   });
 
   const setTheme = useCallback((next: Theme) => {
-    localStorage.setItem(STORAGE_KEY, next);
+    if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY, next);
     setThemeState(next);
   }, []);
 
