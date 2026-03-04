@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { getWeekStart, navigateWeek, isEditable } from "@/lib/dates";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/lib/shifts";
 import { WeekNav } from "@/components/WeekNav";
 import { WeekCalendar } from "@/components/WeekCalendar";
+import { ToastError } from "@/components/ToastError";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -72,12 +74,18 @@ function IndexPage() {
     if (!user) return;
     setSaving(true);
 
-    saveShifts(user.id, diffShifts(shifts, original))
-      .then(() => setOriginal({ ...shifts }))
-      .finally(() => {
+    toast.promise(saveShifts(user.id, diffShifts(shifts, original)), {
+      loading: "Saving shifts...",
+      success: () => {
+        setOriginal({ ...shifts });
+        return "Shifts saved";
+      },
+      error: (err) => <ToastError error={err} copy="Please try again." />,
+      finally: () => {
         setSaving(false);
         setDialogOpen(false);
-      });
+      },
+    });
   };
 
   return (

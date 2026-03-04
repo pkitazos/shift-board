@@ -1,5 +1,6 @@
 import { db } from "@/lib/supabase";
 import { formatDateKey, getWeekDates } from "@/lib/dates";
+import { AppError } from "@/lib/api";
 import { SHIFT_TYPES } from "@/types";
 import type { Shift, ShiftType } from "@/types";
 import type { BasicUser } from "@/lib/users";
@@ -16,21 +17,24 @@ export function cycleShift(current: ShiftType | null): ShiftType | null {
 }
 
 /** Fetch all shifts for a user within a given week. */
-export function fetchShifts(userId: string, weekStart: Date): Promise<Shift[]> {
+export async function fetchShifts(
+  userId: string,
+  weekStart: Date,
+): Promise<Shift[]> {
   const dates = getWeekDates(weekStart);
+  const startDate = formatDateKey(dates[0]);
+  const endDate = formatDateKey(dates[6]);
 
-  return Promise.resolve(
-    db
-      .from("shifts")
-      .select("*")
-      .eq("user_id", userId)
-      .gte("date", formatDateKey(dates[0]))
-      .lte("date", formatDateKey(dates[6]))
-      .then(({ data, error }) => {
-        if (error) throw error;
-        return data;
-      }),
-  );
+  return db
+    .from("shifts")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .then(({ data, error }) => {
+      if (error) throw new AppError("Could not load shifts", error);
+      return data;
+    });
 }
 
 /** Convert a shifts array into a date-keyed map. */
@@ -96,24 +100,26 @@ export async function saveShifts(
           })
       : Promise.resolve();
 
-  return Promise.all([upsertOp, deleteOp]).then(() => undefined);
+  return Promise.all([upsertOp, deleteOp])
+    .then(() => undefined)
+    .catch((cause) => {
+      throw new AppError("Could not save shifts", cause);
+    });
 }
 
 /** Fetch all shifts (with user info) across a date range. */
-export function fetchAllShifts(
+export async function fetchAllShifts(
   startDate: string,
   endDate: string,
 ): Promise<ShiftWithUser[]> {
-  return Promise.resolve(
-    db
-      .from("shifts")
-      .select("*, users(id, name, email)")
-      .gte("date", startDate)
-      .lte("date", endDate)
-      .order("date")
-      .then(({ data, error }) => {
-        if (error) throw error;
-        return data as ShiftWithUser[];
-      }),
-  );
+  return db
+    .from("shifts")
+    .select("*, users(id, name, email)")
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("date")
+    .then(({ data, error }) => {
+      if (error) throw new AppError("Could not load shifts", error);
+      return data as ShiftWithUser[];
+    });
 }

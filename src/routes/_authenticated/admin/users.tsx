@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import * as v from "valibot";
+import { toast } from "sonner";
 import { Trash2, ShieldCheck, ShieldOff, UserPlus } from "lucide-react";
 import {
   fetchAllUsersFull,
@@ -9,6 +10,7 @@ import {
   updateUserAdmin,
 } from "@/lib/users";
 import { useAuth } from "@/lib/auth";
+import { ToastError } from "@/components/ToastError";
 import type { User } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +44,7 @@ function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [adding, setAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const loadUsers = useCallback(() => {
     setLoading(true);
@@ -58,43 +60,63 @@ function AdminUsersPage() {
   const handleAdd = () => {
     const result = v.safeParse(EmailSchema, email);
     if (!result.success) {
-      setError(result.issues[0].message);
+      setValidationError(result.issues[0].message);
       return;
     }
 
     const validated = result.output;
 
     if (users.some((u) => u.email === validated)) {
-      setError("This email is already added.");
+      setValidationError("This email is already added.");
       return;
     }
 
     setAdding(true);
-    setError(null);
-    addUser(validated)
-      .then((newUser) => {
+    setValidationError(null);
+
+    toast.promise(addUser(validated), {
+      loading: "Adding user...",
+      success: (newUser) => {
         setUsers((prev) => [...prev, newUser]);
         setEmail("");
-      })
-      .catch(() =>
-        setError("Failed to add user. Check the email and try again."),
-      )
-      .finally(() => setAdding(false));
-  };
-
-  const handleRemove = (userId: string) => {
-    removeUser(userId).then(() =>
-      setUsers((prev) => prev.filter((u) => u.id !== userId)),
-    );
-  };
-
-  const handleToggleAdmin = (userId: string, currentlyAdmin: boolean) => {
-    const newValue = !currentlyAdmin;
-    updateUserAdmin(userId, newValue).then(() =>
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, is_admin: newValue } : u)),
+        return `${newUser.email} added`;
+      },
+      error: (err) => (
+        <ToastError error={err} copy="Check the email and try again." />
       ),
-    );
+      finally: () => setAdding(false),
+    });
+  };
+
+  const handleRemove = (user: User) => {
+    toast.promise(removeUser(user.id), {
+      loading: `Removing ${user.name ?? user.email}...`,
+      success: () => {
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+        return `${user.name ?? user.email} removed`;
+      },
+      error: (err) => <ToastError error={err} copy="Please try again." />,
+    });
+  };
+
+  const handleToggleAdmin = (user: User) => {
+    const newValue = !user.is_admin;
+    const label = newValue ? "Granting" : "Revoking";
+
+    toast.promise(updateUserAdmin(user.id, newValue), {
+      loading: `${label} admin for ${user.name ?? user.email}...`,
+      success: () => {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id ? { ...u, is_admin: newValue } : u,
+          ),
+        );
+        return newValue
+          ? `${user.name ?? user.email} is now an admin`
+          : `Admin removed from ${user.name ?? user.email}`;
+      },
+      error: (err) => <ToastError error={err} />,
+    });
   };
 
   return (
@@ -114,7 +136,7 @@ function AdminUsersPage() {
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
-            setError(null);
+            setValidationError(null);
           }}
           className="flex-1"
           required
@@ -125,7 +147,9 @@ function AdminUsersPage() {
         </Button>
       </form>
 
-      {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
+      {validationError && (
+        <p className="mb-4 text-sm text-destructive">{validationError}</p>
+      )}
 
       {loading ? (
         <p className="text-muted-foreground">Loading users...</p>
@@ -176,7 +200,7 @@ function AdminUsersPage() {
                           ? "Remove admin"
                           : "Make admin"
                     }
-                    onClick={() => handleToggleAdmin(u.id, u.is_admin)}
+                    onClick={() => handleToggleAdmin(u)}
                   >
                     {u.is_admin ? (
                       <ShieldOff className="size-4" />
@@ -212,7 +236,7 @@ function AdminUsersPage() {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                           className="bg-destructive text-white hover:bg-destructive/90"
-                          onClick={() => handleRemove(u.id)}
+                          onClick={() => handleRemove(u)}
                         >
                           Remove
                         </AlertDialogAction>

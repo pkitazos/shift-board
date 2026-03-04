@@ -41,6 +41,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { ToastError } from "@/components/ToastError";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
@@ -124,14 +126,21 @@ function AdminPage() {
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setSaving(true);
-    await saveGridChanges(grid, original)
-      .then(() => setOriginal(cloneGrid(grid)))
-      .finally(() => {
+
+    toast.promise(saveGridChanges(grid, original), {
+      loading: "Saving changes...",
+      success: () => {
+        setOriginal(cloneGrid(grid));
+        return "Changes saved";
+      },
+      error: (err) => <ToastError error={err} copy="Please try again." />,
+      finally: () => {
         setSaving(false);
         setDialogOpen(false);
-      });
+      },
+    });
   };
 
   const days = getWeekDates(startWeek);

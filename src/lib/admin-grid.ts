@@ -1,7 +1,9 @@
+import { AppError } from "@/lib/api";
 import { SHIFT_TYPES } from "@/types";
 import type { ShiftType } from "@/types";
 import type { ShiftWithUser } from "@/lib/shifts";
 import { saveShifts } from "@/lib/shifts";
+import { match } from "@/lib/match";
 
 export interface CellEntry {
   userId: string;
@@ -77,7 +79,11 @@ export async function saveGridChanges(
     Object.entries(diffs).map(([userId, changes]) =>
       saveShifts(userId, changes),
     ),
-  ).then(() => undefined);
+  )
+    .then(() => undefined)
+    .catch((cause) => {
+      throw new AppError("Could not save shift changes", cause);
+    });
 }
 
 /** Check whether two grids differ. */
@@ -103,19 +109,17 @@ export function cycleGridEntryType(
   dateKey: string,
   userId: string,
 ): GridState {
-  const entries = (grid[dateKey] ?? []).map((e) =>
-    e.userId === userId
-      ? {
-          ...e,
-          type:
-            e.type === SHIFT_TYPES.FULL ? SHIFT_TYPES.HALF : SHIFT_TYPES.FULL,
-        }
-      : e,
-  );
+  const entries = (grid[dateKey] ?? []).map((e) => {
+    if (e.userId !== userId) return e;
+    const type = match(e.type, {
+      [SHIFT_TYPES.FULL]: () => SHIFT_TYPES.HALF,
+      [SHIFT_TYPES.HALF]: () => SHIFT_TYPES.FULL,
+    });
+    return { ...e, type };
+  });
   return { ...grid, [dateKey]: entries };
 }
 
-/** Remove a user from a cell. */
 export function removeGridEntry(
   grid: GridState,
   dateKey: string,
