@@ -64,7 +64,7 @@ export function MobileShiftTag({
               onRemove();
             }
           }}
-          className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white shadow-sm"
+          className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-muted-foreground text-white shadow-sm"
         >
           <X className="size-3" />
         </div>
