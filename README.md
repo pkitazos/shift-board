@@ -4,7 +4,7 @@ ShiftBoard is a web app that lets a shift manager (admin) view and manage employ
 
 ---
 
-## Setup Steps
+## Todo
 
 - [x] Create a Supabase project.
 - [x] Enable Google OAuth provider in Supabase Auth settings.
@@ -15,4 +15,5 @@ ShiftBoard is a web app that lets a shift manager (admin) view and manage employ
 - [x] Scaffold the Vite + React project with TanStack Router.
 - [x] Wire up Supabase client, auth, and shift CRUD.
 - [x] Build the UI.
+- [ ] Setup domain + update email
 - [ ] Deploy to Vercel.
