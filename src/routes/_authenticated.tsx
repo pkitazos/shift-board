@@ -5,8 +5,8 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useAuth } from "@/lib/auth";
-import { useTheme } from "@/lib/theme";
+import { useAuth } from "@/providers/auth";
+import { useTheme } from "@/providers/theme";
 import { Button } from "@/components/ui/button";
 import { LogOut, Sun, Moon, Monitor } from "lucide-react";
 

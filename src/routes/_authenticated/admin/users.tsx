@@ -11,7 +11,7 @@ import {
   updateUserNickname,
   fullName,
 } from "@/lib/users";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/providers/auth";
 import { ToastError } from "@/components/ToastError";
 import type { User } from "@/types";
 import { Button } from "@/components/ui/button";

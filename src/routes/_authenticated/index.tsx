@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/providers/auth";
 import { getWeekStart, navigateWeek, isEditable } from "@/lib/dates";
 import {
   fetchShifts,

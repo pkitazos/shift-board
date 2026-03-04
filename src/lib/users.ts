@@ -1,5 +1,5 @@
 import { db } from "@/lib/supabase";
-import { AppError } from "@/lib/api";
+import { AppError } from "@/lib/errors";
 import type { User } from "@/types";
 
 export type BasicUser = Pick<User, "id" | "name" | "email" | "nickname">;

@@ -1,4 +1,4 @@
-import type { AppError } from "@/lib/api";
+import type { AppError } from "@/lib/errors";
 
 interface ToastErrorProps {
   error: AppError;

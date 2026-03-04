@@ -1,6 +1,6 @@
 import { db } from "@/lib/supabase";
 import { formatDateKey, getWeekDates } from "@/lib/dates";
-import { AppError } from "@/lib/api";
+import { AppError } from "@/lib/errors";
 import { SHIFT_TYPES } from "@/types";
 import type { Shift, ShiftType } from "@/types";
 import type { BasicUser } from "@/lib/users";

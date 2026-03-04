@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/providers/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,

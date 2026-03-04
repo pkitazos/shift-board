@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/providers/auth";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,

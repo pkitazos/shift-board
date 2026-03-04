@@ -1,10 +1,10 @@
-import { AppError } from "@/lib/api";
+import { AppError } from "@/lib/errors";
 import { SHIFT_TYPES } from "@/types";
 import type { ShiftType } from "@/types";
 import type { ShiftWithUser } from "@/lib/shifts";
 import { saveShifts } from "@/lib/shifts";
 import { displayName } from "@/lib/users";
-import { match } from "@/lib/match";
+import { match } from "@/lib/utils";
 
 export interface CellEntry {
   userId: string;
