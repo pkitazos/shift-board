@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { displayName } from "@/lib/users";
 import type { BasicUser } from "@/lib/users";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,7 +29,7 @@ export function AddEmployeeDrawer({
   const available = users.filter(
     (u) =>
       !existingUserIds.has(u.id) &&
-      (u.name ?? u.email).toLowerCase().includes(search.toLowerCase()),
+      displayName(u).toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleSelect = (user: BasicUser) => {
@@ -65,7 +66,7 @@ export function AddEmployeeDrawer({
                 onClick={() => handleSelect(u)}
                 className="rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors hover:bg-muted active:bg-muted"
               >
-                {u.name ?? u.email}
+                {displayName(u)}
               </button>
             ))}
             {available.length === 0 && (

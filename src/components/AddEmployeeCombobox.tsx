@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { displayName } from "@/lib/users";
 import type { BasicUser } from "@/lib/users";
 import {
   Combobox,
@@ -52,7 +53,7 @@ export function AddEmployeeCombobox({
         <ComboboxList>
           {available.map((u) => (
             <ComboboxItem key={u.id} value={u.id}>
-              {u.name ?? u.email}
+              {displayName(u)}
             </ComboboxItem>
           ))}
           {available.length === 0 && (

@@ -3,6 +3,7 @@ import { SHIFT_TYPES } from "@/types";
 import type { ShiftType } from "@/types";
 import type { ShiftWithUser } from "@/lib/shifts";
 import { saveShifts } from "@/lib/shifts";
+import { displayName } from "@/lib/users";
 import { match } from "@/lib/match";
 
 export interface CellEntry {
@@ -21,7 +22,7 @@ export function shiftsToGrid(shifts: ShiftWithUser[]): GridState {
     if (!s.type) return acc;
     (acc[s.date] ??= []).push({
       userId: s.users.id,
-      userName: s.users.name ?? s.users.email,
+      userName: displayName(s.users),
       userEmail: s.users.email,
       type: s.type,
     });

@@ -114,12 +114,13 @@ export async function fetchAllShifts(
 ): Promise<ShiftWithUser[]> {
   return db
     .from("shifts")
-    .select("*, users(id, name, email)")
+    .select("*, users(id, name, email, nickname)")
     .gte("date", startDate)
     .lte("date", endDate)
     .order("date")
+    .overrideTypes<ShiftWithUser[]>()
     .then(({ data, error }) => {
       if (error) throw new AppError("Could not load shifts", error);
-      return data as ShiftWithUser[];
+      return data;
     });
 }

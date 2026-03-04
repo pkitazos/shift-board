@@ -8,6 +8,8 @@ import {
   addUser,
   removeUser,
   updateUserAdmin,
+  updateUserNickname,
+  fullName,
 } from "@/lib/users";
 import { useAuth } from "@/lib/auth";
 import { ToastError } from "@/components/ToastError";
@@ -90,10 +92,10 @@ function AdminUsersPage() {
 
   const handleRemove = (user: User) => {
     toast.promise(removeUser(user.id), {
-      loading: `Removing ${user.name ?? user.email}...`,
+      loading: `Removing ${fullName(user)}...`,
       success: () => {
         setUsers((prev) => prev.filter((u) => u.id !== user.id));
-        return `${user.name ?? user.email} removed`;
+        return `${fullName(user)} removed`;
       },
       error: (err) => <ToastError error={err} copy="Please try again." />,
     });
@@ -104,7 +106,7 @@ function AdminUsersPage() {
     const label = newValue ? "Granting" : "Revoking";
 
     toast.promise(updateUserAdmin(user.id, newValue), {
-      loading: `${label} admin for ${user.name ?? user.email}...`,
+      loading: `${label} admin for ${fullName(user)}...`,
       success: () => {
         setUsers((prev) =>
           prev.map((u) =>
@@ -112,8 +114,24 @@ function AdminUsersPage() {
           ),
         );
         return newValue
-          ? `${user.name ?? user.email} is now an admin`
-          : `Admin removed from ${user.name ?? user.email}`;
+          ? `${fullName(user)} is now an admin`
+          : `Admin removed from ${fullName(user)}`;
+      },
+      error: (err) => <ToastError error={err} />,
+    });
+  };
+
+  const handleNicknameChange = (user: User, nickname: string) => {
+    const trimmed = nickname.trim() || null;
+    if (trimmed === (user.nickname ?? null)) return;
+
+    toast.promise(updateUserNickname(user.id, trimmed), {
+      loading: "Updating nickname...",
+      success: () => {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === user.id ? { ...u, nickname: trimmed } : u)),
+        );
+        return "Nickname updated";
       },
       error: (err) => <ToastError error={err} />,
     });
@@ -165,27 +183,43 @@ function AdminUsersPage() {
                 key={u.id}
                 className="flex items-center justify-between gap-3 px-4 py-3"
               >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-medium">
-                      {u.name ?? u.email}
-                    </span>
-                    {u.is_admin && (
-                      <Badge variant="secondary" className="shrink-0">
-                        Admin
-                      </Badge>
-                    )}
-                    {!u.auth_id && (
-                      <Badge variant="outline" className="shrink-0">
-                        Pending
-                      </Badge>
+                <div className="min-w-0 flex-1 grid grid-cols-2 w-full gap-2">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-medium">
+                        {u.name || u.email}
+                      </span>
+                      {u.is_admin && (
+                        <Badge className="shrink-0 bg-primary/15 text-primary">
+                          Admin
+                        </Badge>
+                      )}
+                      {!u.auth_id && (
+                        <Badge className="shrink-0 bg-sky-200/30 text-sky-700">
+                          Pending
+                        </Badge>
+                      )}
+                    </div>
+                    {(u.name || u.nickname) && (
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {u.email}
+                      </p>
                     )}
                   </div>
-                  {u.name && (
-                    <p className="truncate text-xs text-muted-foreground">
-                      {u.email}
+                  <div className="mt-1 flex items-center gap-2">
+                    <Input
+                      placeholder="nickname"
+                      defaultValue={u.nickname ?? ""}
+                      className="h-7 text-xs"
+                      onBlur={(e) => handleNicknameChange(u, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") e.currentTarget.blur();
+                      }}
+                    />
+                    <p className="mt-0.5 w-full text-[10px] text-muted-foreground">
+                      3–8 chars works best
                     </p>
-                  )}
+                  </div>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1">
@@ -228,8 +262,8 @@ function AdminUsersPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Remove user?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will remove {u.name ?? u.email} and delete all
-                          their shifts. This cannot be undone.
+                          This will remove {fullName(u)} and delete all their
+                          shifts. This cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

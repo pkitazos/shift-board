@@ -57,6 +57,7 @@ export type Database = {
           id: string;
           is_admin: boolean;
           name: string | null;
+          nickname: string | null;
         };
         Insert: {
           auth_id?: string | null;
@@ -65,6 +66,7 @@ export type Database = {
           id?: string;
           is_admin?: boolean;
           name?: string | null;
+          nickname?: string | null;
         };
         Update: {
           auth_id?: string | null;
@@ -73,6 +75,7 @@ export type Database = {
           id?: string;
           is_admin?: boolean;
           name?: string | null;
+          nickname?: string | null;
         };
         Relationships: [];
       };
@@ -81,7 +84,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      is_admin: { Args: never; Returns: boolean };
     };
     Enums: {
       shift_type: "full" | "half";

@@ -9,7 +9,7 @@ import {
   navigateWeek,
 } from "@/lib/dates";
 import { fetchAllShifts } from "@/lib/shifts";
-import { fetchAllUsers } from "@/lib/users";
+import { fetchAllUsers, displayName } from "@/lib/users";
 import type { BasicUser } from "@/lib/users";
 import { SHIFT_TYPES } from "@/types";
 import type { ShiftType } from "@/types";
@@ -109,9 +109,9 @@ function AdminPage() {
         ...(prev[dateKey] ?? []),
         {
           userId: user.id,
-          userName: user.name ?? user.email,
+          userName: displayName(user),
           userEmail: user.email,
-          type: SHIFT_TYPES.FULL as ShiftType,
+          type: SHIFT_TYPES.FULL,
         },
       ],
     }));
