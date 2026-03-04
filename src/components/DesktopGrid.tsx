@@ -36,91 +36,87 @@ export function DesktopGrid({
   onAddEmployee,
 }: DesktopGridProps) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full table-fixed border-collapse text-sm">
-        <thead>
-          <tr>
-            <th className="w-14 px-2 py-1 text-left text-xs font-medium text-muted-foreground">
-              Week
-            </th>
-            {days.map((day) => (
-              <th
-                key={formatDateKey(day)}
-                className="px-2 py-1 text-center text-xs font-medium text-muted-foreground"
-              >
-                {formatDayHeader(day)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {weeks.map((weekStart) => {
-            const dates = getWeekDates(weekStart);
+    <div>
+      {/* Header row */}
+      <div className="grid grid-cols-[3.5rem_repeat(7,1fr)] gap-x-1 text-sm">
+        <div className="px-2 py-1 text-left text-xs font-medium text-muted-foreground">
+          Week
+        </div>
+        {days.map((day) => (
+          <div
+            key={formatDateKey(day)}
+            className="px-2 py-1 text-center text-xs font-medium text-muted-foreground"
+          >
+            {formatDayHeader(day)}
+          </div>
+        ))}
+      </div>
 
-            const maxPerDay = Math.max(
-              0,
-              ...dates.map((d) => (grid[formatDateKey(d)] ?? []).length),
-            );
-            const minSubRows = Math.max(2, maxPerDay + 1);
+      {/* Data rows */}
+      {weeks.map((weekStart) => {
+        const dates = getWeekDates(weekStart);
 
-            return (
-              <tr key={formatDateKey(weekStart)} className="border-t">
-                <td className="px-2 py-2 text-xs font-medium text-muted-foreground align-top">
-                  W{getWeekNumber(weekStart)}
-                </td>
-                {dates.map((date) => {
-                  const key = formatDateKey(date);
-                  const dayEntries = grid[key] ?? [];
-                  const isPending = pendingCells.has(key);
-                  const existingUserIds = new Set(
-                    dayEntries.map((e) => e.userId),
-                  );
+        const maxPerDay = Math.max(
+          0,
+          ...dates.map((d) => (grid[formatDateKey(d)] ?? []).length),
+        );
+        const minSubRows = Math.max(2, maxPerDay + 1);
 
-                  return (
-                    <td
-                      key={key}
-                      className="px-0.5 py-2 align-top overflow-hidden"
-                    >
-                      <div
-                        className="group relative flex min-w-0 flex-col justify-start gap-2 px-px"
-                        style={{ minHeight: `${minSubRows * 2}rem` }}
+        return (
+          <div
+            key={formatDateKey(weekStart)}
+            className="grid grid-cols-[3.5rem_repeat(7,1fr)] gap-x-1 border-t text-sm"
+          >
+            <div className="px-2 py-2 text-xs font-medium text-muted-foreground">
+              W{getWeekNumber(weekStart)}
+            </div>
+            {dates.map((date) => {
+              const key = formatDateKey(date);
+              const dayEntries = grid[key] ?? [];
+              const isPending = pendingCells.has(key);
+              const existingUserIds = new Set(dayEntries.map((e) => e.userId));
+
+              return (
+                <div
+                  key={key}
+                  className="px-0.5 py-2"
+                  style={{ minHeight: `${minSubRows * 2}rem` }}
+                >
+                  <div className="group flex flex-col justify-start gap-2">
+                    {dayEntries.map((entry) => (
+                      <ShiftTag
+                        key={entry.userId}
+                        name={entry.userName}
+                        type={entry.type}
+                        className="text-xs"
+                        onCycleType={() => onCycleType(key, entry.userId)}
+                        onRemove={() => onRemove(key, entry.userId)}
+                      />
+                    ))}
+
+                    {isPending ? (
+                      <AddEmployeeCombobox
+                        users={users}
+                        existingUserIds={existingUserIds}
+                        onSelect={(user) => onAddEmployee(key, user)}
+                        onCancel={() => onCancelCombobox(key)}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onOpenCombobox(key)}
+                        className="flex w-full h-8 cursor-pointer items-center justify-center rounded-md py-0.5 text-xs text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
                       >
-                        {dayEntries.map((entry) => (
-                          <ShiftTag
-                            key={entry.userId}
-                            name={entry.userName}
-                            type={entry.type}
-                            className="text-xs"
-                            onCycleType={() => onCycleType(key, entry.userId)}
-                            onRemove={() => onRemove(key, entry.userId)}
-                          />
-                        ))}
-
-                        {isPending ? (
-                          <AddEmployeeCombobox
-                            users={users}
-                            existingUserIds={existingUserIds}
-                            onSelect={(user) => onAddEmployee(key, user)}
-                            onCancel={() => onCancelCombobox(key)}
-                          />
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => onOpenCombobox(key)}
-                            className="flex w-full h-8 cursor-pointer items-center justify-center rounded-md py-0.5 text-xs text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
-                          >
-                            <Plus className="size-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                        <Plus className="size-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }

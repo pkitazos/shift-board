@@ -1,8 +1,10 @@
+import * as motion from "motion/react-client";
 import { cn } from "@/lib/utils";
 import { SHIFT_TYPES } from "@/types";
 import type { ShiftType } from "@/types";
 import { X } from "lucide-react";
 import { useLongPress } from "@/hooks/useLongPress";
+import { shiftCellVariant } from "./ShiftCell";
 
 interface MobileShiftTagProps {
   name: string;
@@ -28,16 +30,19 @@ export function MobileShiftTag({
   };
 
   return (
-    <div
+    <motion.button
+      type="button"
       className={cn(
-        "relative select-none rounded-lg px-2 py-2 text-xs font-medium transition-colors",
+        "relative min-w-0 select-none rounded-lg px-2 py-2 text-left text-xs font-medium transition-colors",
         "touch-manipulation",
+        shiftCellVariant({ variant: type }),
         type === SHIFT_TYPES.FULL &&
           "bg-pink-100 text-pink-700 active:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-300",
         type === SHIFT_TYPES.HALF &&
           "bg-amber-100 text-amber-700 active:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300",
       )}
       onClick={handleClick}
+      whileTap={deleteMode ? undefined : { scale: 1.05 }}
       {...longPressHandlers}
     >
       <span className="block truncate">{name}</span>
@@ -46,17 +51,24 @@ export function MobileShiftTag({
       </span>
 
       {deleteMode && (
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              onRemove();
+            }
+          }}
           className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white shadow-sm"
         >
           <X className="size-3" />
-        </button>
+        </div>
       )}
-    </div>
+    </motion.button>
   );
 }
