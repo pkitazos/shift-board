@@ -82,7 +82,7 @@ export function DesktopGrid({
                       className="px-0.5 py-2 align-top overflow-hidden"
                     >
                       <div
-                        className="group relative flex min-w-0 flex-col justify-start gap-1 px-px"
+                        className="group relative flex min-w-0 flex-col justify-start gap-2 px-px"
                         style={{ minHeight: `${minSubRows * 2}rem` }}
                       >
                         {dayEntries.map((entry) => (

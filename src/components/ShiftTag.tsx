@@ -1,7 +1,9 @@
+import { X } from "lucide-react";
+import * as motion from "motion/react-client";
 import { cn } from "@/lib/utils";
 import { SHIFT_TYPES } from "@/types";
 import type { ShiftType } from "@/types";
-import { X } from "lucide-react";
+import { shiftCellVariant } from "./ShiftCell";
 
 interface ShiftTagProps {
   name: string;
@@ -19,16 +21,14 @@ export function ShiftTag({
   onRemove,
 }: ShiftTagProps) {
   return (
-    <span
+    <motion.div
       className={cn(
-        "group/tag h-8 inline-flex items-center gap-0.5 truncate rounded-md px-1.5 py-0.5 text-xs font-medium justify-between cursor-pointer transition-colors duration-100",
+        "group/tag h-8 inline-flex items-center gap-0.5 truncate rounded-md border px-1.5 py-0.5 text-xs font-medium justify-between cursor-pointer transition-colors duration-100",
+        shiftCellVariant({ variant: type }),
         className,
-        type === SHIFT_TYPES.FULL &&
-          "bg-pink-100 hover:bg-pink-200 text-pink-700 dark:bg-pink-900/30 hover:dark:bg-pink-900/40 dark:text-pink-300",
-        type === SHIFT_TYPES.HALF &&
-          "bg-amber-100 hover:bg-amber-200 text-amber-700 dark:bg-amber-900/30 hover:dark:bg-amber-900/40 dark:text-amber-300",
       )}
       onClick={onCycleType}
+      whileTap={{ scale: 1.05 }}
     >
       <span className="w-full">{name}</span>
       {onRemove && (
@@ -49,6 +49,6 @@ export function ShiftTag({
           <X className="size-3" />
         </button>
       )}
-    </span>
+    </motion.div>
   );
 }
