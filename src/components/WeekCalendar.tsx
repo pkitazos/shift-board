@@ -1,4 +1,9 @@
-import { getWeekDates, formatDateKey, formatDayHeader } from "@/lib/dates";
+import {
+  getWeekDates,
+  formatDateKey,
+  formatDayHeader,
+  formatDayHeaderCompact,
+} from "@/lib/dates";
 import { ShiftCell } from "@/components/ShiftCell";
 import type { ShiftType } from "@/types";
 
@@ -24,7 +29,8 @@ export function WeekCalendar({
         return (
           <div key={key} className="flex flex-col gap-1">
             <span className="text-center text-xs font-medium text-muted-foreground">
-              {formatDayHeader(day)}
+              <span className="sm:hidden">{formatDayHeaderCompact(day)}</span>
+              <span className="hidden sm:inline">{formatDayHeader(day)}</span>
             </span>
             <ShiftCell
               value={shifts[key] ?? null}

@@ -44,7 +44,12 @@ export function formatDateKey(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-/** Format day header, e.g. "Mon 3/3". */
+/** Format day header for desktop, e.g. "Mon 3/3". */
 export function formatDayHeader(date: Date): string {
-  return format(date, "EEE MM/dd");
+  return format(date, "EEE M/d");
+}
+
+/** Format day header for mobile, e.g. "Mo". */
+export function formatDayHeaderCompact(date: Date): string {
+  return format(date, "EEEEEE");
 }

@@ -8,6 +8,7 @@ import {
   getWeekNumber,
   formatDateKey,
   formatDayHeader,
+  formatDayHeaderCompact,
   navigateWeek,
 } from "@/lib/dates";
 import { fetchAllShifts } from "@/lib/shifts";
@@ -133,7 +134,7 @@ function AdminPage() {
       });
   };
 
-  const dayHeaders = getWeekDates(startWeek).map(formatDayHeader);
+  const days = getWeekDates(startWeek);
 
   return (
     <section className="mx-auto max-w-7xl p-4">
@@ -160,12 +161,17 @@ function AdminPage() {
                     <span className="sm:hidden">#</span>
                     <span className="hidden sm:inline">Week</span>
                   </th>
-                  {dayHeaders.map((day) => (
+                  {days.map((day) => (
                     <th
-                      key={day}
+                      key={formatDateKey(day)}
                       className="px-0.5 sm:px-2 py-1 text-center text-2xs sm:text-xs font-medium text-muted-foreground"
                     >
-                      {day}
+                      <span className="sm:hidden">
+                        {formatDayHeaderCompact(day)}
+                      </span>
+                      <span className="hidden sm:inline">
+                        {formatDayHeader(day)}
+                      </span>
                     </th>
                   ))}
                 </tr>
