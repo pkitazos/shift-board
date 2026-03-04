@@ -1,37 +1,44 @@
 import { db } from "@/lib/supabase";
 import { formatDateKey, getWeekDates } from "@/lib/dates";
-import type { Shift, ShiftType, User } from "@/types";
-
-export type BasicUser = Pick<User, "id" | "name" | "email">;
+import { SHIFT_TYPES } from "@/types";
+import type { Shift, ShiftType } from "@/types";
+import type { BasicUser } from "@/lib/users";
 
 export interface ShiftWithUser extends Shift {
   users: BasicUser;
 }
 
+/** Cycle through: null -> full -> half -> null */
+export function cycleShift(current: ShiftType | null): ShiftType | null {
+  if (!current) return SHIFT_TYPES.FULL;
+  if (current === SHIFT_TYPES.FULL) return SHIFT_TYPES.HALF;
+  return null;
+}
+
 /** Fetch all shifts for a user within a given week. */
-export async function fetchShifts(
-  userId: string,
-  weekStart: Date,
-): Promise<Shift[]> {
-  const [startDate, endDate] = [0, 6].map((i) =>
-    formatDateKey(getWeekDates(weekStart)[i]),
+export function fetchShifts(userId: string, weekStart: Date): Promise<Shift[]> {
+  const dates = getWeekDates(weekStart);
+
+  return Promise.resolve(
+    db
+      .from("shifts")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("date", formatDateKey(dates[0]))
+      .lte("date", formatDateKey(dates[6]))
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data;
+      }),
   );
-
-  const { data, error } = await db
-    .from("shifts")
-    .select("*")
-    .eq("user_id", userId)
-    .gte("date", startDate)
-    .lte("date", endDate);
-
-  if (error) throw error;
-  return data;
 }
 
 /** Convert a shifts array into a date-keyed map. */
-export function shiftsToMap(shifts: Shift[]): Record<string, ShiftType | null> {
+export function shiftsToMap(shifts: Shift[]): Record<string, ShiftType> {
   return Object.fromEntries(
-    shifts.filter((s) => s.type).map((s) => [s.date, s.type]),
+    shifts
+      .filter((s): s is Shift & { type: ShiftType } => s.type !== null)
+      .map((s) => [s.date, s.type]),
   );
 }
 
@@ -58,100 +65,55 @@ export async function saveShifts(
   changes: Record<string, ShiftType | null>,
 ): Promise<void> {
   const entries = Object.entries(changes);
+
   const toUpsert = entries
     .filter(([, type]) => type !== null)
     .map(([date, type]) => ({ user_id: userId, date, type: type! }));
+
   const toDelete = entries
     .filter(([, type]) => type === null)
     .map(([date]) => date);
 
-  if (toUpsert.length > 0) {
-    const { error } = await db
-      .from("shifts")
-      .upsert(toUpsert, { onConflict: "user_id,date" });
-    if (error) throw error;
-  }
+  const upsertOp =
+    toUpsert.length > 0
+      ? db
+          .from("shifts")
+          .upsert(toUpsert, { onConflict: "user_id,date" })
+          .then(({ error }) => {
+            if (error) throw error;
+          })
+      : Promise.resolve();
 
-  if (toDelete.length > 0) {
-    const { error } = await db
-      .from("shifts")
-      .delete()
-      .eq("user_id", userId)
-      .in("date", toDelete);
-    if (error) throw error;
-  }
-}
+  const deleteOp =
+    toDelete.length > 0
+      ? db
+          .from("shifts")
+          .delete()
+          .eq("user_id", userId)
+          .in("date", toDelete)
+          .then(({ error }) => {
+            if (error) throw error;
+          })
+      : Promise.resolve();
 
-/** Fetch all users. */
-export async function fetchAllUsers(): Promise<BasicUser[]> {
-  const { data, error } = await db
-    .from("users")
-    .select("id, name, email")
-    .order("name");
-
-  if (error) throw error;
-  return data;
-}
-
-/** Fetch all users (full profile). */
-export async function fetchAllUsersFull(): Promise<User[]> {
-  const { data, error } = await db
-    .from("users")
-    .select("*")
-    .order("name");
-
-  if (error) throw error;
-  return data;
-}
-
-/** Add a new user by email. */
-export async function addUser(email: string): Promise<User> {
-  const { data, error } = await db
-    .from("users")
-    .insert({ email })
-    .select("*")
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-/** Remove a user by id. Also deletes their shifts via cascade. */
-export async function removeUser(userId: string): Promise<void> {
-  const { error: shiftsError } = await db
-    .from("shifts")
-    .delete()
-    .eq("user_id", userId);
-  if (shiftsError) throw shiftsError;
-
-  const { error } = await db.from("users").delete().eq("id", userId);
-  if (error) throw error;
-}
-
-/** Toggle a user's admin status. */
-export async function updateUserAdmin(
-  userId: string,
-  isAdmin: boolean,
-): Promise<void> {
-  const { error } = await db
-    .from("users")
-    .update({ is_admin: isAdmin })
-    .eq("id", userId);
-  if (error) throw error;
+  return Promise.all([upsertOp, deleteOp]).then(() => undefined);
 }
 
 /** Fetch all shifts (with user info) across a date range. */
-export async function fetchAllShifts(
+export function fetchAllShifts(
   startDate: string,
   endDate: string,
 ): Promise<ShiftWithUser[]> {
-  const { data, error } = await db
-    .from("shifts")
-    .select("*, users(id, name, email)")
-    .gte("date", startDate)
-    .lte("date", endDate)
-    .order("date");
-
-  if (error) throw error;
-  return data as ShiftWithUser[];
+  return Promise.resolve(
+    db
+      .from("shifts")
+      .select("*, users(id, name, email)")
+      .gte("date", startDate)
+      .lte("date", endDate)
+      .order("date")
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data as ShiftWithUser[];
+      }),
+  );
 }

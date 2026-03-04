@@ -7,7 +7,7 @@ import {
   addUser,
   removeUser,
   updateUserAdmin,
-} from "@/lib/shifts";
+} from "@/lib/users";
 import { useAuth } from "@/lib/auth";
 import type { User } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -101,7 +101,6 @@ function AdminUsersPage() {
     <section className="mx-auto max-w-2xl p-4">
       <h1 className="mb-6 text-xl font-bold">User Management</h1>
 
-      {/* Add user form */}
       <form
         className="mb-6 flex gap-2"
         onSubmit={(e) => {
@@ -128,7 +127,6 @@ function AdminUsersPage() {
 
       {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
-      {/* Users list */}
       {loading ? (
         <p className="text-muted-foreground">Loading users...</p>
       ) : users.length === 0 ? (
@@ -167,7 +165,6 @@ function AdminUsersPage() {
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1">
-                  {/* Toggle admin */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -188,7 +185,6 @@ function AdminUsersPage() {
                     )}
                   </Button>
 
-                  {/* Remove user */}
                   <AlertDialog>
                     <AlertDialogTrigger
                       render={

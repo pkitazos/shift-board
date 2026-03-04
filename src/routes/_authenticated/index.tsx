@@ -2,9 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { getWeekStart, navigateWeek, isEditable } from "@/lib/dates";
-import { fetchShifts, saveShifts, shiftsToMap, diffShifts } from "@/lib/shifts";
+import {
+  fetchShifts,
+  saveShifts,
+  shiftsToMap,
+  diffShifts,
+  cycleShift,
+} from "@/lib/shifts";
 import { WeekNav } from "@/components/WeekNav";
-import { WeekCalendar, cycleShift } from "@/components/WeekCalendar";
+import { WeekCalendar } from "@/components/WeekCalendar";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -37,12 +43,12 @@ function IndexPage() {
   const editable = isEditable(weekStart, isAdmin);
   const hasChanges = Object.keys(diffShifts(shifts, original)).length > 0;
 
-  const loadShifts = useCallback(async () => {
+  const loadShifts = useCallback(() => {
     if (!user) return;
     setLoading(true);
 
-    await fetchShifts(user.id, weekStart)
-      .then((data) => shiftsToMap(data))
+    fetchShifts(user.id, weekStart)
+      .then(shiftsToMap)
       .then((map) => {
         setShifts(map);
         setOriginal(map);
@@ -62,11 +68,11 @@ function IndexPage() {
     }));
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!user) return;
     setSaving(true);
 
-    await saveShifts(user.id, diffShifts(shifts, original))
+    saveShifts(user.id, diffShifts(shifts, original))
       .then(() => setOriginal({ ...shifts }))
       .finally(() => {
         setSaving(false);

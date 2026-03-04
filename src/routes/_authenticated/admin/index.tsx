@@ -1,11 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useEffect, useState } from "react";
 import { addWeeks } from "date-fns";
 import { Plus } from "lucide-react";
 import {
@@ -16,21 +10,25 @@ import {
   formatDayHeader,
   navigateWeek,
 } from "@/lib/dates";
-import { fetchAllShifts, fetchAllUsers, saveShifts } from "@/lib/shifts";
-import type { ShiftWithUser, BasicUser } from "@/lib/shifts";
-import { ShiftType } from "@/types";
-import type { ShiftType as ShiftTypeValue } from "@/types";
+import { fetchAllShifts } from "@/lib/shifts";
+import { fetchAllUsers } from "@/lib/users";
+import type { BasicUser } from "@/lib/users";
+import { SHIFT_TYPES } from "@/types";
+import type { ShiftType } from "@/types";
+import {
+  shiftsToGrid,
+  cloneGrid,
+  saveGridChanges,
+  hasGridChanges,
+  cycleGridEntryType,
+  removeGridEntry,
+} from "@/lib/admin-grid";
+import type { GridState } from "@/lib/admin-grid";
+import { useWeeksToShow } from "@/hooks/useWeeksToShow";
 import { WeekNav } from "@/components/WeekNav";
 import { ShiftTag } from "@/components/ShiftTag";
+import { AddEmployeeCombobox } from "@/components/AddEmployeeCombobox";
 import { Button } from "@/components/ui/button";
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-} from "@/components/ui/combobox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,170 +45,6 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
 });
 
-const ROW_HEIGHT_ESTIMATE = 100;
-const CHROME_HEIGHT = 140; // header + nav + padding
-const MIN_WEEKS = 4;
-
-function subscribeToResize(cb: () => void) {
-  window.addEventListener("resize", cb);
-  return () => window.removeEventListener("resize", cb);
-}
-
-function getWeeksToShow() {
-  return Math.max(
-    MIN_WEEKS,
-    Math.floor((window.innerHeight - CHROME_HEIGHT) / ROW_HEIGHT_ESTIMATE),
-  );
-}
-
-function useWeeksToShow() {
-  return useSyncExternalStore(subscribeToResize, getWeeksToShow);
-}
-
-// -- Types --
-
-interface CellEntry {
-  userId: string;
-  userName: string;
-  userEmail: string;
-  type: ShiftTypeValue;
-}
-
-/** State: date key -> array of cell entries */
-type GridState = Record<string, CellEntry[]>;
-
-// -- Helpers --
-
-function shiftsToGrid(shifts: ShiftWithUser[]): GridState {
-  return shifts.reduce<GridState>((acc, s) => {
-    if (!s.type) return acc;
-    (acc[s.date] ??= []).push({
-      userId: s.users.id,
-      userName: s.users.name ?? s.users.email,
-      userEmail: s.users.email,
-      type: s.type,
-    });
-    return acc;
-  }, {});
-}
-
-function cloneGrid(grid: GridState): GridState {
-  return Object.fromEntries(
-    Object.entries(grid).map(([k, v]) => [k, v.map((e) => ({ ...e }))]),
-  );
-}
-
-/** Compute per-user diffs and call saveShifts for each changed user. */
-async function computeAndSave(
-  current: GridState,
-  original: GridState,
-): Promise<void> {
-  const allDates = new Set([...Object.keys(current), ...Object.keys(original)]);
-
-  // Build per-user change maps: userId -> { date -> type | null }
-  const userChanges: Record<string, Record<string, ShiftTypeValue | null>> = {};
-
-  [...allDates].forEach((date) => {
-    const cur = current[date] ?? [];
-    const orig = original[date] ?? [];
-
-    // Index originals by userId
-    const origMap = Object.fromEntries(orig.map((e) => [e.userId, e.type]));
-    const curMap = Object.fromEntries(cur.map((e) => [e.userId, e.type]));
-
-    // Find additions and type changes
-    cur.forEach((entry) => {
-      if (origMap[entry.userId] !== entry.type) {
-        (userChanges[entry.userId] ??= {})[date] = entry.type;
-      }
-    });
-
-    // Find removals
-    orig.forEach((entry) => {
-      if (!(entry.userId in curMap)) {
-        (userChanges[entry.userId] ??= {})[date] = null;
-      }
-    });
-  });
-
-  return Promise.all(
-    Object.entries(userChanges).map(([userId, changes]) =>
-      saveShifts(userId, changes),
-    ),
-  ).then(() => undefined);
-}
-
-function hasGridChanges(current: GridState, original: GridState): boolean {
-  const allDates = new Set([...Object.keys(current), ...Object.keys(original)]);
-
-  return [...allDates].some((date) => {
-    const cur = current[date] ?? [];
-    const orig = original[date] ?? [];
-    if (cur.length !== orig.length) return true;
-
-    const origMap = Object.fromEntries(orig.map((e) => [e.userId, e.type]));
-    return cur.some((entry) => origMap[entry.userId] !== entry.type);
-  });
-}
-
-// -- Inline combobox for adding an employee --
-
-function AddEmployeeCombobox({
-  users,
-  existingUserIds,
-  onSelect,
-  onCancel,
-}: {
-  users: BasicUser[];
-  existingUserIds: Set<string>;
-  onSelect: (user: BasicUser) => void;
-  onCancel: () => void;
-}) {
-  const available = users.filter((u) => !existingUserIds.has(u.id));
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    // Auto-focus
-    requestAnimationFrame(() => inputRef.current?.focus());
-  }, []);
-
-  return (
-    <Combobox
-      open
-      onOpenChange={(open) => {
-        if (!open) onCancel();
-      }}
-      onValueChange={(val) => {
-        const user = available.find((u) => u.id === val);
-        if (user) onSelect(user);
-      }}
-    >
-      <ComboboxInput
-        ref={inputRef}
-        className="w-full h-6 sm:h-8 min-w-0 text-2xs sm:text-xs"
-        placeholder="Add employee..."
-        onKeyDown={(e) => {
-          if (e.key === "Escape") onCancel();
-        }}
-      />
-      <ComboboxContent>
-        <ComboboxList>
-          {available.map((u) => (
-            <ComboboxItem key={u.id} value={u.id}>
-              {u.name ?? u.email}
-            </ComboboxItem>
-          ))}
-          {available.length === 0 && (
-            <ComboboxEmpty>No employees available</ComboboxEmpty>
-          )}
-        </ComboboxList>
-      </ComboboxContent>
-    </Combobox>
-  );
-}
-
-// -- Main component --
-
 function AdminPage() {
   const weeksToShow = useWeeksToShow();
   const [startWeek, setStartWeek] = useState(() => getWeekStart(new Date()));
@@ -220,7 +54,6 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  // Track which cells have an open combobox: "YYYY-MM-DD"
   const [pendingCells, setPendingCells] = useState<Set<string>>(new Set());
 
   const weeks = Array.from({ length: weeksToShow }, (_, i) =>
@@ -251,30 +84,11 @@ function AdminPage() {
   }, [loadData]);
 
   const handleCycleType = (dateKey: string, userId: string) => {
-    setGrid((prev) => {
-      const entries = (prev[dateKey] ?? []).map((e) =>
-        e.userId === userId
-          ? {
-              ...e,
-              type: e.type === ShiftType.FULL ? ShiftType.HALF : ShiftType.FULL,
-            }
-          : e,
-      );
-      return { ...prev, [dateKey]: entries };
-    });
+    setGrid((prev) => cycleGridEntryType(prev, dateKey, userId));
   };
 
   const handleRemove = (dateKey: string, userId: string) => {
-    setGrid((prev) => {
-      const entries = (prev[dateKey] ?? []).filter((e) => e.userId !== userId);
-      const next = { ...prev };
-      if (entries.length === 0) {
-        delete next[dateKey];
-      } else {
-        next[dateKey] = entries;
-      }
-      return next;
-    });
+    setGrid((prev) => removeGridEntry(prev, dateKey, userId));
   };
 
   const handleAddEmployee = (dateKey: string, user: BasicUser) => {
@@ -286,7 +100,7 @@ function AdminPage() {
           userId: user.id,
           userName: user.name ?? user.email,
           userEmail: user.email,
-          type: ShiftType.FULL as ShiftTypeValue,
+          type: SHIFT_TYPES.FULL as ShiftType,
         },
       ],
     }));
@@ -309,9 +123,9 @@ function AdminPage() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
-    computeAndSave(grid, original)
+    await saveGridChanges(grid, original)
       .then(() => setOriginal(cloneGrid(grid)))
       .finally(() => {
         setSaving(false);
@@ -319,7 +133,6 @@ function AdminPage() {
       });
   };
 
-  // Day headers (Mon-Sun)
   const dayHeaders = getWeekDates(startWeek).map(formatDayHeader);
 
   return (
@@ -361,7 +174,6 @@ function AdminPage() {
                 {weeks.map((weekStart) => {
                   const dates = getWeekDates(weekStart);
 
-                  // Compute max employees in any cell this row
                   const maxPerDay = Math.max(
                     0,
                     ...dates.map((d) => (grid[formatDateKey(d)] ?? []).length),

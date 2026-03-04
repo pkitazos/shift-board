@@ -1,6 +1,6 @@
 import type { Tables, Enums } from "@/types/database";
 
-export const ShiftType = {
+export const SHIFT_TYPES = {
   FULL: "full",
   HALF: "half",
 } as const;
