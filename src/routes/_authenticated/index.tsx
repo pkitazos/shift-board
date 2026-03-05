@@ -10,6 +10,10 @@ import {
   diffShifts,
   cycleShift,
 } from "@/lib/shifts";
+import {
+  ChangesSummary,
+  buildEmployeeChanges,
+} from "@/components/ChangesSummary";
 import { WeekNav } from "@/components/WeekNav";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { ToastError } from "@/components/ToastError";
@@ -34,6 +38,7 @@ export const Route = createFileRoute("/_authenticated/")({
 function IndexPage() {
   const { user, isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [shifts, setShifts] = useState<Record<string, ShiftType | null>>({});
   const [original, setOriginal] = useState<Record<string, ShiftType | null>>(
@@ -88,6 +93,11 @@ function IndexPage() {
     });
   };
 
+  const handleDiscard = () => {
+    setShifts({ ...original });
+    setDiscardDialogOpen(false);
+  };
+
   return (
     <section className="mx-auto max-w-2xl p-4">
       <div className="mb-6 flex items-center justify-between">
@@ -110,12 +120,38 @@ function IndexPage() {
             onToggle={handleToggle}
           />
 
-          {editable && (
-            <div className="mt-4 flex justify-end">
+          {editable && hasChanges && (
+            <div className="mt-4 flex justify-end gap-2">
+              <AlertDialog
+                open={discardDialogOpen}
+                onOpenChange={setDiscardDialogOpen}
+              >
+                <AlertDialogTrigger
+                  render={<Button variant="outline">Discard</Button>}
+                />
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      All unsaved changes will be lost.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      variant="destructive"
+                      onClick={handleDiscard}
+                    >
+                      Discard
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
               <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <AlertDialogTrigger
                   render={
-                    <Button disabled={!hasChanges || saving}>
+                    <Button disabled={saving}>
                       {saving ? "Saving..." : "Save"}
                     </Button>
                   }
@@ -123,8 +159,14 @@ function IndexPage() {
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Save changes?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Your shift availability for this week will be updated.
+                    <AlertDialogDescription render={<div />}>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Your shift availability for this week will be updated.
+                      </p>
+                      <ChangesSummary
+                        variant="employee"
+                        changes={buildEmployeeChanges(shifts, original)}
+                      />
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -135,6 +177,12 @@ function IndexPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+            </div>
+          )}
+
+          {editable && !hasChanges && (
+            <div className="mt-4 flex justify-end">
+              <Button disabled>Save</Button>
             </div>
           )}
 

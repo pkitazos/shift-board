@@ -4,7 +4,7 @@ import type { ShiftType } from "@/types";
 import type { ShiftWithUser } from "@/lib/shifts";
 import { saveShifts } from "@/lib/shifts";
 import { displayName } from "@/lib/users";
-import { match } from "@/lib/utils";
+import { match } from "@/lib/utils/match";
 
 export interface CellEntry {
   userId: string;

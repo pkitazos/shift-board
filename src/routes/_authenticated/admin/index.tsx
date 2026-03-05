@@ -12,7 +12,6 @@ import { fetchAllShifts } from "@/lib/shifts";
 import { fetchAllUsers, displayName } from "@/lib/users";
 import type { BasicUser } from "@/lib/users";
 import { SHIFT_TYPES } from "@/types";
-import type { ShiftType } from "@/types";
 import {
   shiftsToGrid,
   cloneGrid,
@@ -22,6 +21,7 @@ import {
   removeGridEntry,
 } from "@/lib/admin-grid";
 import type { GridState } from "@/lib/admin-grid";
+import { ChangesSummary, buildAdminChanges } from "@/components/ChangesSummary";
 import { useWeeksToShow } from "@/hooks/useWeeksToShow";
 import { WeekNav } from "@/components/WeekNav";
 import { DesktopGrid } from "@/components/DesktopGrid";
@@ -55,6 +55,7 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
 
   // Desktop: inline combobox state
   const [pendingCells, setPendingCells] = useState<Set<string>>(new Set());
@@ -138,6 +139,14 @@ function AdminPage() {
         setDialogOpen(false);
       },
     });
+  };
+
+  const handleDiscard = () => {
+    setGrid(cloneGrid(original));
+    setPendingCells(new Set());
+    setDeleteMode(false);
+    setDrawerDateKey(null);
+    setDiscardDialogOpen(false);
   };
 
   // -- Desktop-only handlers --
@@ -226,9 +235,35 @@ function AdminPage() {
             />
           </div>
 
-          {/* Save button -- shared */}
+          {/* Save + Discard bar -- shared */}
           {hasChanges && (
-            <div className="sticky bottom-4 mt-4 flex justify-end">
+            <div className="sticky bottom-4 mt-4 flex justify-end gap-2">
+              <AlertDialog
+                open={discardDialogOpen}
+                onOpenChange={setDiscardDialogOpen}
+              >
+                <AlertDialogTrigger
+                  render={<Button variant="outline">Discard</Button>}
+                />
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      All unsaved changes will be lost.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      variant="destructive"
+                      onClick={handleDiscard}
+                    >
+                      Discard
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
               <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <AlertDialogTrigger
                   render={
@@ -240,8 +275,14 @@ function AdminPage() {
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Save changes?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      All shift changes across the visible weeks will be saved.
+                    <AlertDialogDescription render={<div />}>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        The following shift changes will be saved.
+                      </p>
+                      <ChangesSummary
+                        variant="admin"
+                        groups={buildAdminChanges(grid, original)}
+                      />
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

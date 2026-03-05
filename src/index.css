@@ -130,6 +130,15 @@
     }
 }
 
+.changes-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.dark .changes-scroll {
+    scrollbar-color: var(--muted-foreground) var(--muted);
+}
+
 @utility dbg-* {
     outline: 2px solid --value(--color-*);
 }
