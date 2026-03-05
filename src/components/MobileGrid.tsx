@@ -66,9 +66,10 @@ export function MobileGrid({
               return (
                 <div key={key} className="min-w-0 px-0.5 py-1.5 col-span-1">
                   <div className="min-w-0 flex flex-col gap-1">
-                    {dayEntries.map((entry) => (
+                    {dayEntries.map((entry, i) => (
                       <MobileShiftTag
                         key={entry.userId}
+                        index={i + 1}
                         name={entry.userName}
                         type={entry.type}
                         deleteMode={deleteMode}

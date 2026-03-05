@@ -7,6 +7,7 @@ import { useLongPress } from "@/hooks/useLongPress";
 import { shiftCellVariant } from "./ShiftCell";
 
 interface MobileShiftTagProps {
+  index: number;
   name: string;
   type: ShiftType;
   deleteMode: boolean;
@@ -16,6 +17,7 @@ interface MobileShiftTagProps {
 }
 
 export function MobileShiftTag({
+  index,
   name,
   type,
   deleteMode,
@@ -31,7 +33,6 @@ export function MobileShiftTag({
 
   return (
     <motion.button
-      type="button"
       className={cn(
         "relative min-w-0 select-none rounded-lg px-2 py-2 text-left text-xs font-medium transition-colors",
         "touch-manipulation",
@@ -41,8 +42,27 @@ export function MobileShiftTag({
         type === SHIFT_TYPES.HALF &&
           "bg-amber-100 text-amber-700 active:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300",
       )}
+      whileTap={deleteMode ? { scale: 1 } : { scale: 1.05 }}
+      animate={
+        deleteMode
+          ? {
+              scale: [1, 1.001, 1, 0.999, 1],
+              rotate: [-2, 2, -2],
+            }
+          : { rotate: 0 }
+      }
+      transition={
+        deleteMode
+          ? {
+              repeat: Infinity,
+              repeatType: "loop",
+              duration: 0.2 + index * 0.03,
+              ease: "easeInOut",
+              delay: index * 0.05,
+            }
+          : {}
+      }
       onClick={handleClick}
-      whileTap={deleteMode ? undefined : { scale: 1.05 }}
       {...longPressHandlers}
     >
       <span className="block truncate">{name}</span>

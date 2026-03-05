@@ -241,7 +241,7 @@ function AdminPage() {
           </div>
 
           {/* Save + Discard bar -- shared */}
-          {hasChanges && (
+          {hasChanges && !deleteMode && (
             <ActionBar {...countAdminChanges(buildAdminChanges(grid, original))}>
               <AlertDialog
                 open={discardDialogOpen}
