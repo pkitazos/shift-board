@@ -53,7 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from("users")
       .select("*")
       .eq("email", email)
-      .single();
+      .single()
+      .overrideTypes<User>();
 
     if (result.error || !result.data) {
       await db.auth.signOut();
