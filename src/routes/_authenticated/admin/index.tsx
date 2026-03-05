@@ -17,10 +17,13 @@ import {
   cloneGrid,
   saveGridChanges,
   hasGridChanges,
+  computeUserDiffs,
   cycleGridEntryType,
   removeGridEntry,
 } from "@/lib/admin-grid";
 import type { GridState } from "@/lib/admin-grid";
+import { notifyAffectedEmployees } from "@/lib/notify";
+import { useAuth } from "@/providers/auth";
 import { ChangesSummary, buildAdminChanges } from "@/components/ChangesSummary";
 import {
   ActionBar,
@@ -52,6 +55,7 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 function AdminPage() {
+  const { user, session } = useAuth();
   const weeksToShow = useWeeksToShow();
   const [startWeek, setStartWeek] = useState(() => getWeekStart(new Date()));
   const [grid, setGrid] = useState<GridState>({});
@@ -121,6 +125,7 @@ function AdminPage() {
         },
       ],
     }));
+
     // Desktop: close combobox
     setPendingCells((prev) => {
       const next = new Set(prev);
@@ -135,6 +140,18 @@ function AdminPage() {
     toast.promise(saveGridChanges(grid, original), {
       loading: "Saving changes...",
       success: () => {
+        const affectedIds = Object.keys(
+          computeUserDiffs(grid, original),
+        ).filter((id) => id !== user?.id);
+
+        if (affectedIds.length && session?.access_token) {
+          notifyAffectedEmployees(
+            startWeek,
+            affectedIds,
+            session.access_token,
+          ).catch(console.error);
+        }
+
         setOriginal(cloneGrid(grid));
         return "Changes saved";
       },
@@ -242,13 +259,17 @@ function AdminPage() {
 
           {/* Save + Discard bar -- shared */}
           {hasChanges && !deleteMode && (
-            <ActionBar {...countAdminChanges(buildAdminChanges(grid, original))}>
+            <ActionBar
+              {...countAdminChanges(buildAdminChanges(grid, original))}
+            >
               <AlertDialog
                 open={discardDialogOpen}
                 onOpenChange={setDiscardDialogOpen}
               >
                 <AlertDialogTrigger
-                  render={<button className={actionBarDiscardClass}>Discard</button>}
+                  render={
+                    <button className={actionBarDiscardClass}>Discard</button>
+                  }
                 />
                 <AlertDialogContent>
                   <AlertDialogHeader>

@@ -1,10 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const url = import.meta.env.VITE_SUPABASE_URL;
+if (!url) {
+  throw new Error("Missing VITE_SUPABASE_URL");
+}
 
-if (!supabaseUrl) throw new Error("Missing VITE_SUPABASE_URL");
-if (!supabaseAnonKey) throw new Error("Missing VITE_SUPABASE_ANON_KEY");
+const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+if (!publishableKey) {
+  throw new Error("Missing VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY");
+}
 
-export const db = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const db = createClient<Database>(url, publishableKey);
