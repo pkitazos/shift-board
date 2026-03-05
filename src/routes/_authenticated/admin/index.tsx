@@ -22,6 +22,12 @@ import {
 } from "@/lib/admin-grid";
 import type { GridState } from "@/lib/admin-grid";
 import { ChangesSummary, buildAdminChanges } from "@/components/ChangesSummary";
+import {
+  ActionBar,
+  actionBarSaveClass,
+  actionBarDiscardClass,
+  countAdminChanges,
+} from "@/components/ActionBar";
 import { useWeeksToShow } from "@/hooks/useWeeksToShow";
 import { WeekNav } from "@/components/WeekNav";
 import { DesktopGrid } from "@/components/DesktopGrid";
@@ -29,7 +35,6 @@ import { MobileGrid } from "@/components/MobileGrid";
 import { DeleteModeBar } from "@/components/DeleteModeBar";
 import { AddEmployeeDrawer } from "@/components/AddEmployeeDrawer";
 import { ToastError } from "@/components/ToastError";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -237,13 +242,13 @@ function AdminPage() {
 
           {/* Save + Discard bar -- shared */}
           {hasChanges && (
-            <div className="sticky bottom-4 mt-4 flex justify-end gap-2">
+            <ActionBar {...countAdminChanges(buildAdminChanges(grid, original))}>
               <AlertDialog
                 open={discardDialogOpen}
                 onOpenChange={setDiscardDialogOpen}
               >
                 <AlertDialogTrigger
-                  render={<Button variant="outline">Discard</Button>}
+                  render={<button className={actionBarDiscardClass}>Discard</button>}
                 />
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -267,9 +272,9 @@ function AdminPage() {
               <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <AlertDialogTrigger
                   render={
-                    <Button disabled={saving}>
+                    <button disabled={saving} className={actionBarSaveClass}>
                       {saving ? "Saving..." : "Save changes"}
-                    </Button>
+                    </button>
                   }
                 />
                 <AlertDialogContent>
@@ -293,7 +298,7 @@ function AdminPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </div>
+            </ActionBar>
           )}
         </>
       )}

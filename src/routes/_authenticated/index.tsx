@@ -14,10 +14,15 @@ import {
   ChangesSummary,
   buildEmployeeChanges,
 } from "@/components/ChangesSummary";
+import {
+  ActionBar,
+  actionBarSaveClass,
+  actionBarDiscardClass,
+  countChanges,
+} from "@/components/ActionBar";
 import { WeekNav } from "@/components/WeekNav";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { ToastError } from "@/components/ToastError";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,13 +126,13 @@ function IndexPage() {
           />
 
           {editable && hasChanges && (
-            <div className="mt-4 flex justify-end gap-2">
+            <ActionBar {...countChanges(buildEmployeeChanges(shifts, original))}>
               <AlertDialog
                 open={discardDialogOpen}
                 onOpenChange={setDiscardDialogOpen}
               >
                 <AlertDialogTrigger
-                  render={<Button variant="outline">Discard</Button>}
+                  render={<button className={actionBarDiscardClass}>Discard</button>}
                 />
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -151,9 +156,9 @@ function IndexPage() {
               <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <AlertDialogTrigger
                   render={
-                    <Button disabled={saving}>
+                    <button disabled={saving} className={actionBarSaveClass}>
                       {saving ? "Saving..." : "Save"}
-                    </Button>
+                    </button>
                   }
                 />
                 <AlertDialogContent>
@@ -177,13 +182,7 @@ function IndexPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </div>
-          )}
-
-          {editable && !hasChanges && (
-            <div className="mt-4 flex justify-end">
-              <Button disabled>Save</Button>
-            </div>
+            </ActionBar>
           )}
 
           {!editable && (

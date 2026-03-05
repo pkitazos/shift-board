@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { groupBy } from "@/lib/utils/group-by";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-interface ShiftChange {
+export interface ShiftChange {
   date: string;
   from: ShiftType | null;
   to: ShiftType | null;
