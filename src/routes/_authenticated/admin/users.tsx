@@ -195,7 +195,7 @@ function AdminUsersPage() {
                         </Badge>
                       )}
                       {!u.auth_id && (
-                        <Badge className="shrink-0 bg-sky-200/30 text-sky-700">
+                        <Badge className="shrink-0 bg-sky-200/30 text-sky-700 dark:bg-sky-200/60 dark:text-sky-800">
                           Pending
                         </Badge>
                       )}

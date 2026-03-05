@@ -18,7 +18,7 @@ export const shiftCellVariant = cva(
         [SHIFT_TYPES.FULL]:
           "text-pink-700 bg-pink-200/50 border-pink-300 hover:bg-pink-200/75 dark:text-pink-300 dark:dark:bg-pink-800/30 dark:border-pink-700 hover:dark:bg-pink-800/40",
         [SHIFT_TYPES.HALF]:
-          "text-amber-700 bg-amber-200/50 border-amber-300 hover:bg-amber-200/75 dark:text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 hover:dark:bg-amber-900/40",
+          "text-amber-700 bg-amber-200/50 border-amber-300 hover:bg-amber-200/75 dark:text-amber-500 dark:bg-amber-900/30 dark:border-amber-700 hover:dark:bg-amber-900/40",
       },
     },
   },
@@ -40,7 +40,7 @@ export function ShiftCell({ value, disabled, onClick }: ShiftCellProps) {
         className={cn(
           "w-full rounded-b-md px-2 py-1 text-xs font-medium h-full flex items-end",
           value === SHIFT_TYPES.HALF &&
-            "h-1/2 bg-amber-200/50 group-hover:bg-amber-300/50",
+            "h-1/2 bg-amber-200/50 group-hover:bg-amber-300/50 dark:bg-amber-900/30 group-hover:dark:bg-amber-900/40",
         )}
       >
         {value === SHIFT_TYPES.FULL && "Full"}
