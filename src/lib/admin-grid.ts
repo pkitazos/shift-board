@@ -1,10 +1,9 @@
 import { AppError } from "@/lib/errors";
-import { SHIFT_TYPES } from "@/types";
+import { cycleGridShift } from "@/lib/shift-config";
 import type { ShiftType } from "@/types";
 import type { ShiftWithUser } from "@/lib/shifts";
 import { saveShifts } from "@/lib/shifts";
 import { displayName } from "@/lib/users";
-import { match } from "@/lib/utils/match";
 
 export interface CellEntry {
   userId: string;
@@ -104,7 +103,7 @@ export function hasGridChanges(
   });
 }
 
-/** Cycle a cell entry's type between full and half. */
+/** Cycle a cell entry's type between shift types. */
 export function cycleGridEntryType(
   grid: GridState,
   dateKey: string,
@@ -112,11 +111,7 @@ export function cycleGridEntryType(
 ): GridState {
   const entries = (grid[dateKey] ?? []).map((e) => {
     if (e.userId !== userId) return e;
-    const type = match(e.type, {
-      [SHIFT_TYPES.FULL]: () => SHIFT_TYPES.HALF,
-      [SHIFT_TYPES.HALF]: () => SHIFT_TYPES.FULL,
-    });
-    return { ...e, type };
+    return { ...e, type: cycleGridShift(e.type) };
   });
   return { ...grid, [dateKey]: entries };
 }

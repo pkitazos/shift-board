@@ -11,7 +11,7 @@ import {
 import { fetchAllShifts } from "@/lib/shifts";
 import { fetchAllUsers, displayName } from "@/lib/users";
 import type { BasicUser } from "@/lib/users";
-import { SHIFT_TYPES } from "@/types";
+import { defaultShiftType } from "@/lib/shift-config";
 import {
   shiftsToGrid,
   cloneGrid,
@@ -121,7 +121,7 @@ function AdminPage() {
           userId: user.id,
           userName: displayName(user),
           userEmail: user.email,
-          type: SHIFT_TYPES.FULL,
+          type: defaultShiftType(),
         },
       ],
     }));

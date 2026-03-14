@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { parseISO } from "date-fns";
 import { ArrowRightIcon } from "lucide-react";
 import { formatDayHeader } from "@/lib/dates";
-import { SHIFT_TYPES, type ShiftType } from "@/types";
+import { shiftLabel } from "@/lib/shift-config";
+import type { ShiftType } from "@/types";
 import type { GridState } from "@/lib/admin-grid";
 import { shiftCellVariant } from "@/components/ShiftCell";
 import { cn } from "@/lib/utils";
@@ -111,7 +112,7 @@ function ShiftBadge({ type }: { type: ShiftType | null }) {
         "rounded-sm cursor-default",
       )}
     >
-      {type === SHIFT_TYPES.FULL ? "Full" : "Half"}
+      {shiftLabel(type)}
     </span>
   );
 }

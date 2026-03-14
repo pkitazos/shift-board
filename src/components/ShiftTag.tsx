@@ -1,7 +1,8 @@
 import { X } from "lucide-react";
 import * as motion from "motion/react-client";
 import { cn } from "@/lib/utils";
-import { SHIFT_TYPES, type ShiftType } from "@/types";
+import { shiftMeta } from "@/lib/shift-config";
+import type { ShiftType } from "@/types";
 import { shiftCellVariant } from "./ShiftCell";
 
 interface ShiftTagProps {
@@ -47,10 +48,7 @@ export function ShiftTag({
           }}
           className={cn(
             "ml-0.5 inline-flex shrink-0 items-center justify-center rounded-sm p-0.5 opacity-0 transition-opacity group-hover/tag:opacity-100",
-            type === SHIFT_TYPES.FULL &&
-              "hover:bg-pink-400/30 hover:dark:bg-pink-900/50",
-            type === SHIFT_TYPES.HALF &&
-              "hover:bg-amber-400/40 hover:dark:bg-amber-900/50",
+            shiftMeta(type).hoverColor,
           )}
         >
           <X className="size-3" />

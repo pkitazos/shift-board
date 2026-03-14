@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { startOfWeek, addDays, format } from "date-fns";
 import type { Database } from "../src/types/database";
+import type { ShiftType } from "../src/types";
 import ScheduleEmail, { buildDaysArray } from "../src/emails/schedule-email";
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!;
@@ -89,7 +90,7 @@ type ServiceClient = ReturnType<typeof serviceClient>;
 interface UserShiftGroup {
   name: string | null;
   email: string;
-  shifts: { date: string; type: "full" | "half" | null }[];
+  shifts: { date: string; type: ShiftType | null }[];
 }
 
 async function sendEmails(

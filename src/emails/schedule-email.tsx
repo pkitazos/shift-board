@@ -12,21 +12,19 @@ import {
   Tailwind,
 } from "@react-email/components";
 import { format, parseISO, addDays } from "date-fns";
+import { shiftLabel, buildEmailTypeClasses } from "@/lib/shift-config";
+import type { ShiftType } from "@/types";
 
 interface ScheduleEmailProps {
   name: string | null;
   weekStart: string;
-  days: { date: string; type: "full" | "half" | null }[];
+  days: { date: string; type: ShiftType | null }[];
   isOverride: boolean;
 }
 
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
-const typeClasses = {
-  full: "text-pink-700 bg-pink-100",
-  half: "text-amber-700 bg-amber-100",
-  off: "text-gray-500 bg-gray-100",
-} as const;
+const typeClasses = buildEmailTypeClasses();
 
 export default function ScheduleEmail({
   name,
@@ -56,7 +54,7 @@ export default function ScheduleEmail({
                   const classes = day.type
                     ? typeClasses[day.type]
                     : typeClasses.off;
-                  const label = day.type ?? "off";
+                  const label = day.type ? shiftLabel(day.type) : "off";
                   return (
                     <Column key={day.date} className="px-1 text-center">
                       <Text className="mb-1 text-xs font-semibold text-gray-700">
@@ -87,7 +85,7 @@ export default function ScheduleEmail({
 /** Helper to build the 7-day array from shift data for a given user + week. */
 export function buildDaysArray(
   weekStart: string,
-  shifts: { date: string; type: "full" | "half" | null }[],
+  shifts: { date: string; type: ShiftType | null }[],
 ): ScheduleEmailProps["days"] {
   const shiftMap = Object.fromEntries(shifts.map((s) => [s.date, s.type]));
   return Array.from({ length: 7 }, (_, i) => {

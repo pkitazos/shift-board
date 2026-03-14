@@ -1,6 +1,6 @@
 import * as motion from "motion/react-client";
 import { cn } from "@/lib/utils";
-import { SHIFT_TYPES } from "@/types";
+import { shiftLabel, shiftMeta } from "@/lib/shift-config";
 import type { ShiftType } from "@/types";
 import { X } from "lucide-react";
 import { useLongPress } from "@/hooks/useLongPress";
@@ -37,10 +37,7 @@ export function MobileShiftTag({
         "relative min-w-0 select-none rounded-lg px-2 py-2 text-left text-xs font-medium transition-colors",
         "touch-manipulation",
         shiftCellVariant({ variant: type }),
-        type === SHIFT_TYPES.FULL &&
-          "bg-pink-100 text-pink-700 active:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-300",
-        type === SHIFT_TYPES.HALF &&
-          "bg-amber-100 text-amber-700 active:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300",
+        shiftMeta(type).mobileColor,
       )}
       whileTap={deleteMode ? { scale: 1 } : { scale: 1.05 }}
       animate={
@@ -67,7 +64,7 @@ export function MobileShiftTag({
     >
       <span className="block truncate">{name}</span>
       <span className="block text-[10px] opacity-60">
-        {type === SHIFT_TYPES.FULL ? "Full" : "Half"}
+        {shiftLabel(type)}
       </span>
 
       {deleteMode && (

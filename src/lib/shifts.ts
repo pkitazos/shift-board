@@ -1,19 +1,13 @@
 import { db } from "@/lib/supabase";
 import { formatDateKey, getWeekDates } from "@/lib/dates";
 import { AppError } from "@/lib/errors";
-import { SHIFT_TYPES } from "@/types";
 import type { Shift, ShiftType } from "@/types";
 import type { BasicUser } from "@/lib/users";
 
+export { cycleShift } from "@/lib/shift-config";
+
 export interface ShiftWithUser extends Shift {
   users: BasicUser;
-}
-
-/** Cycle through: null -> full -> half -> null */
-export function cycleShift(current: ShiftType | null): ShiftType | null {
-  if (!current) return SHIFT_TYPES.FULL;
-  if (current === SHIFT_TYPES.FULL) return SHIFT_TYPES.HALF;
-  return null;
 }
 
 /** Fetch all shifts for a user within a given week. */
