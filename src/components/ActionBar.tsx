@@ -45,7 +45,7 @@ function ChangeLabel({ additions, removals, modifications }: ChangeCounts) {
     );
   if (modifications > 0)
     parts.push(
-      <span key="mod" className="text-background/70">
+      <span key="mod" className="text-zinc-100/70 dark:text-zinc-900/70">
         ~{modifications}
       </span>,
     );
@@ -61,7 +61,7 @@ export function ActionBar({
 }: ActionBarProps) {
   return (
     <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center">
-      <div className="flex items-center gap-3 rounded-full bg-foreground py-1.5 pr-1.5 pl-4 shadow-lg">
+      <div className="flex items-center gap-3 rounded-full bg-zinc-900/85 backdrop-blur-md dark:bg-zinc-100/85 py-1.5 pr-1.5 pl-4 shadow-lg">
         <ChangeLabel
           additions={additions}
           removals={removals}
@@ -74,7 +74,7 @@ export function ActionBar({
 }
 
 export const actionBarSaveClass =
-  "rounded-full bg-background px-4 py-1.5 text-sm font-medium text-foreground disabled:opacity-50 cursor-pointer";
+  "rounded-full bg-white px-4 py-1.5 text-sm font-medium text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 disabled:opacity-50 cursor-pointer";
 
 export const actionBarDiscardClass =
-  "rounded-full bg-background/15 px-4 py-1.5 text-sm font-medium text-background cursor-pointer";
+  "rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium text-zinc-100 dark:text-zinc-900 dark:bg-zinc-900/20 cursor-pointer";
