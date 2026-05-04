@@ -60,7 +60,7 @@ export function ActionBar({
   children,
 }: ActionBarProps) {
   return (
-    <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center">
+    <div className="fixed inset-x-0 bottom-[max(1.5rem,calc(env(safe-area-inset-bottom)+0.5rem))] z-50 flex justify-center">
       <div className="flex items-center gap-3 rounded-full bg-zinc-900/85 backdrop-blur-md dark:bg-zinc-100/85 py-1.5 pr-1.5 pl-4 shadow-lg">
         <ChangeLabel
           additions={additions}

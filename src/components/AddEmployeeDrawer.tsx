@@ -56,7 +56,6 @@ export function AddEmployeeDrawer({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="mb-3"
-            autoFocus
           />
           <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
             {available.map((u) => (
